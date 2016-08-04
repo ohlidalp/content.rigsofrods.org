@@ -129,7 +129,7 @@ function ror_repo_is_installed()
 	global $db;
 
 	// If the table exists then it means the plugin is installed because we only drop it on uninstallation
-	return $db->table_exists('ror_repo_downloads');
+	return $db->table_exists(TABLE_PREFIX.'ror_repo_downloads');
 }
 
 /*
@@ -142,9 +142,14 @@ function ror_repo_uninstall()
 	global $db, $mybb;
 
 	// drop tables if desired
-	if($db->table_exists('ror_repo_downloads'))
+	if($db->table_exists(TABLE_PREFIX.'ror_repo_downloads'))
 	{
-		$db->drop_table('ror_repo_downloads');
+		$db->drop_table(TABLE_PREFIX.'ror_repo_downloads');
+	}
+    
+    if($db->table_exists(TABLE_PREFIX.'ror_repo_ratings'))
+	{
+		$db->drop_table(TABLE_PREFIX.'ror_repo_ratings');
 	}
 }
 
