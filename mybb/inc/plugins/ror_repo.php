@@ -91,8 +91,8 @@ function ror_repo_activate()
     
     // EXAMPLE CODE
     
-    global $db, $lang;
-    $lang->load('ror_repo');
+    //global $db, $lang;
+    //$lang->load('ror_repo');
     
 	// Include this file because it is where find_replace_templatesets is defined
 	//require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
