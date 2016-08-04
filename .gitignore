@@ -1,0 +1,16 @@
+# To enable development directly in webserver+MyBB, this gitignore is whitelist-style.
+
+# Ignore all
+*
+# Whitelist:
+
+# The plugin file
+!mybb
+!mybb/inc
+!mybb/inc/plugins
+!mybb/inc/plugins/ror_repo.php
+# The repository web
+!repo
+!repo/*
+!repo/resources
+!repo/resources/*
