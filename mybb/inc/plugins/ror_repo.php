@@ -6,6 +6,8 @@
 	Licensed as GPLv3 
 */
 
+// Inspired by http://community.mybb.com/mods.php?action=view&pid=90
+
 // Make sure we can't access this file directly from the browser.
 if(!defined('IN_MYBB'))
 {
@@ -22,7 +24,7 @@ if(defined('IN_ADMINCP'))
 }
 else
 {
-
+    $plugins->add_hook("editpost_end", "ror_repo_editpost_end");
 }
 
 // -----------------------------------------------------------------------------
@@ -87,18 +89,25 @@ function ror_repo_install()
 */
 function ror_repo_activate()
 {
+    global $db;
+
+	$insert_array = array(
+		'title'		=> 'edit_post_publish_ror_repo',
+		'template'	=> $db->escape_string('<tr>'
+            .'<td class="trow2"><strong>Content repository:</strong></td>'
+            .'<td class="trow2"><input type="checkbox">Publish in content repository?</td>'
+            .'</tr>'),
+		'sid'		=> '-1',
+		'version'	=> '',
+		'dateline'	=> TIME_NOW
+	);
+	$db->insert_query("templates", $insert_array);
+    
+	// For find_replace_templatesets()
+	require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
 	
-    
-    // EXAMPLE CODE
-    
-    //global $db, $lang;
-    //$lang->load('ror_repo');
-    
-	// Include this file because it is where find_replace_templatesets is defined
-	//require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
-	
-	// Edit the index template and add our variable to above {$forums}
-	//find_replace_templatesets('index', '#'.preg_quote('{$forums}').'#', "{\$hello}\n{\$forums}");
+	// Edit the templates and insert our variables
+	find_replace_templatesets("editpost", "#".preg_quote('{$posticons}')."#i", '{$ror_repo_publish_thread}{$posticons}');
 }
 
 /*
@@ -110,12 +119,13 @@ function ror_repo_activate()
 */
 function ror_repo_deactivate()
 {
-
-        // EXAMPLE CODE
-	//require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
+	global $db;
+	$db->delete_query("templates", "title IN('edit_post_publish_ror_repo')");
+    
+	require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
 	
-	// remove template edits
-	//find_replace_templatesets('index', '#'.preg_quote('{$hello}').'#', '');
+	// Remove template edits
+	find_replace_templatesets("editpost", "#".preg_quote('{$ror_repo_publish_thread}')."#i", '', 0);
 }
 
 /*
@@ -164,3 +174,17 @@ function ror_repo_settings()
 	//$lang->load('ror_repo');
 }
 
+// -----------------------------------------------------------------------------
+// Hook functions
+// -----------------------------------------------------------------------------
+
+function ror_repo_editpost_end()
+{    
+    global $lang, $mybb, $thread, $templates, $post_errors, $ror_repo_publish_thread;
+
+	$pid = $mybb->get_input('pid', MyBB::INPUT_INT);
+	if($thread['firstpost'] == $pid)
+	{
+		eval(" \$ror_repo_publish_thread = \"".$templates->get("edit_post_publish_ror_repo")."\"; ");
+	}
+}
