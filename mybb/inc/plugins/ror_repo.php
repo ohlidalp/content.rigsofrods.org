@@ -27,6 +27,10 @@ else
     $plugins->add_hook("editpost_end", "ror_repo_editpost_end");
 }
 
+define('REPO_TABLE_THREADS',   "ror_repo_threads");
+define('REPO_TABLE_DOWNLOADS', "ror_repo_downloads");
+define('REPO_TABLE_RATINGS',   "ror_repo_ratings");
+
 // -----------------------------------------------------------------------------
 // Basic plugin functions, see http://docs.mybb.com/1.8/development/plugins/
 // -----------------------------------------------------------------------------
@@ -63,7 +67,7 @@ function ror_repo_install()
 	{
 		$collation = $db->build_create_table_collation();
 
-		$db->write_query("CREATE TABLE `".TABLE_PREFIX."ror_repo_downloads` (
+		$db->write_query("CREATE TABLE `".TABLE_PREFIX.REPO_TABLE_DOWNLOADS."` (
 			`id` int UNSIGNED NOT NULL auto_increment,
 			`aid` int UNSIGNED NULL default NULL,       # MyBB attachment ID (NULL means URL is used)
 			`pid` int UNSIGNED NOT NULL,                # MyBB post ID
@@ -73,7 +77,7 @@ function ror_repo_install()
 			PRIMARY KEY (`id`)
 		) ENGINE=MyISAM{$collation}");
 		
-		$db->write_query("CREATE TABLE `".TABLE_PREFIX."ror_repo_ratings` (
+		$db->write_query("CREATE TABLE `".TABLE_PREFIX.REPO_TABLE_RATINGS."` (
 			`download_id` int(10) UNSIGNED NOT NULL,       # Repo download ID
 			`uid` int(10) UNSIGNED NOT NULL,               # MyBB user ID
 			`rating` tinyint UNSIGNED NOT NULL default 0,  # The rating
@@ -139,7 +143,7 @@ function ror_repo_is_installed()
 	global $db;
 
 	// If the table exists then it means the plugin is installed because we only drop it on uninstallation
-	return $db->table_exists(TABLE_PREFIX.'ror_repo_downloads');
+	return (bool) $db->table_exists(REPO_TABLE_DOWNLOADS);
 }
 
 /*
