@@ -25,6 +25,7 @@ if(defined('IN_ADMINCP'))
 else
 {
     $plugins->add_hook("editpost_end", "ror_repo_editpost_end");
+    $plugins->add_hook("editpost_do_editpost_end", "ror_repo_do_editpost_end");
 }
 
 define('REPO_TABLE_THREADS',   "ror_repo_threads");
@@ -76,6 +77,12 @@ function ror_repo_install()
 			`type` int UNSIGNED NOT NULL default 0,     # 0-unknown, 1-vehicle ZIP, 2-map ZIP, 3-pack ZIP, 4-skinzip
 			PRIMARY KEY (`id`)
 		) ENGINE=MyISAM{$collation}");
+        
+        $db->write_query("CREATE TABLE `".TABLE_PREFIX.REPO_TABLE_THREADS."` (
+            `id` int UNSIGNED NOT NULL auto_increment,
+            `tid` int UNSIGNED NOT NULL,                # MyBB thread ID
+            PRIMARY KEY (`id`)
+        ) ENGINE=MyISAM{$collation}");
 		
 		$db->write_query("CREATE TABLE `".TABLE_PREFIX.REPO_TABLE_RATINGS."` (
 			`download_id` int(10) UNSIGNED NOT NULL,       # Repo download ID
@@ -99,7 +106,7 @@ function ror_repo_activate()
 		'title'		=> 'edit_post_publish_ror_repo',
 		'template'	=> $db->escape_string('<tr>'
             .'<td class="trow2"><strong>Content repository:</strong></td>'
-            .'<td class="trow2"><input type="checkbox">Publish in content repository?</td>'
+            .'<td class="trow2"><input type="checkbox" name="ror_repo_publish_thread" value="1" {$ror_repo_publish_checked}>Publish in content repository?</td>'
             .'</tr>'),
 		'sid'		=> '-1',
 		'version'	=> '',
@@ -155,16 +162,15 @@ function ror_repo_uninstall()
 {
 	global $db, $mybb;
 
-	// drop tables if desired
-	if($db->table_exists(TABLE_PREFIX.'ror_repo_downloads'))
-	{
-		$db->drop_table(TABLE_PREFIX.'ror_repo_downloads');
-	}
-    
-    if($db->table_exists(TABLE_PREFIX.'ror_repo_ratings'))
-	{
-		$db->drop_table(TABLE_PREFIX.'ror_repo_ratings');
-	}
+	// drop tables
+    $tables = [REPO_TABLE_THREADS, REPO_TABLE_DOWNLOADS, REPO_TABLE_RATINGS];
+    foreach ($tables as $table_name)
+    { 
+    	if ($db->table_exists($table_name))
+    	{
+    		$db->drop_table($table_name);
+    	}
+    }
 }
 
 /*
@@ -182,13 +188,50 @@ function ror_repo_settings()
 // Hook functions
 // -----------------------------------------------------------------------------
 
-function ror_repo_editpost_end()
+function ror_repo_editpost_end() // Entering edit form
 {    
-    global $lang, $mybb, $thread, $templates, $post_errors, $ror_repo_publish_thread;
+    global $lang, $mybb, $thread, $templates, $post_errors;
+    global $ror_repo_publish_thread;
 
 	$pid = $mybb->get_input('pid', MyBB::INPUT_INT);
 	if($thread['firstpost'] == $pid)
 	{
+        $ror_repo_publish_checked = ror_repo_is_thread_published($thread['tid']) ? "checked" : "";
 		eval(" \$ror_repo_publish_thread = \"".$templates->get("edit_post_publish_ror_repo")."\"; ");
 	}
+}
+
+// Update description
+function ror_repo_do_editpost_end() // Edit form submitted
+{
+	global $db, $mybb, $tid;
+    
+    $make_public = (bool) $mybb->get_input('ror_repo_publish_thread') == '1';
+    ror_repo_publish_thread($tid, $make_public);
+}
+
+// -----------------------------------------------------------------------------
+// Helper functions
+// -----------------------------------------------------------------------------
+
+function ror_repo_publish_thread($tid, $do_publish)
+{
+    global $db;
+    
+    if ($do_publish && !ror_repo_is_thread_published($tid))
+    {
+        $db->insert_query(REPO_TABLE_THREADS, array("tid" => $tid));
+    }
+    else
+    {
+        $db->delete_query(REPO_TABLE_THREADS, "`tid` = {$tid}");
+    }
+}
+
+function ror_repo_is_thread_published($tid)
+{
+    global $db;
+
+    $sql_result = $db->simple_select(REPO_TABLE_THREADS, "id", "tid = ".$db->escape_string($tid));
+    return (bool) ($db->num_rows($sql_result) > 0);    
 }
