@@ -428,7 +428,7 @@ if($mybb->input['action'] == "thread")
 			{
                 $html_title = $post['subject'] . " - " . $repo_config['html_basic_title'];
                 $h1_text = $post['subject'];
-				$post_html = repo_build_postbit($post);
+				$post_fragments = repo_render_post($post);
 
 			}
             break;
@@ -439,7 +439,7 @@ if($mybb->input['action'] == "thread")
         <table border="0" cellspacing="0" cellpadding="0" class="tborder tfixed clear">
         <tr>
             <td id="posts_container">
-        	   <div id="posts">'.$post_html.'</div>
+        	   <div id="posts">'.$post_fragments['message'].'</div>
             </td>
         </tr></table>';
 	
@@ -642,14 +642,7 @@ function repo_get_post_attachments($id, &$attachcache, &$post)
 	}
 }
 
-/**
- * Build a post bit
- *
- * @param array $post The post data
- * @param int $post_type The type of post bit we're building (1 = preview, 2 = pm, 3 = announcement, else = post)
- * @return string The built post bit
- */
-function repo_build_postbit($post, $post_type=0)
+function repo_render_post($post)
 {
 	global $db, $altbg, $theme, $mybb, $postcounter, $profile_fields;
 	global $titlescache, $page, $templates, $forumpermissions, $attachcache;
@@ -657,6 +650,7 @@ function repo_build_postbit($post, $post_type=0)
 	global $plugins, $parser, $cache, $ignored_users, $hascustomtitle;
 
 	$hascustomtitle = 0;
+    $post_type=0;
 
 	// Set default values for any fields not provided here
 	foreach(array('pid', 'aid', 'pmid', 'posturl', 'button_multiquote', 'subject_extra', 'attachments', 'button_rep', 'button_warn', 'button_purgespammer', 'button_pm', 'button_reply_pm', 'button_replyall_pm', 'button_forward_pm', 'button_delete_pm', 'replink', 'warninglevel') as $post_field)
@@ -981,26 +975,7 @@ function repo_build_postbit($post, $post_type=0)
 	{
 		repo_get_post_attachments($id, $post);
 	}
-
-
-
-
-
-	$post['icon'] = "";
-	$post['signature'] = "";
-
-
-
-	if($mybb->settings['postlayout'] == "classic")
-	{
-		eval("\$postbit = \"".$templates->get("postbit_classic")."\";");
-	}
-	else
-	{
-		eval("\$postbit = \"".$templates->get("postbit")."\";");
-	}
-	$GLOBALS['post'] = "";
-
-	return $postbit;
+    
+	return $post;
 }
 
