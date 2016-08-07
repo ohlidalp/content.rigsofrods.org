@@ -410,7 +410,9 @@ if($mybb->input['action'] == "thread")
 		}
 
 		// Get the actual posts from the database here.
-		$posts = '';
+		$post_html = '';
+        $html_title = $repo_config['html_basic_title'];
+        $h1_text = '';
 		$query = $db->query("
 			SELECT u.*, u.username AS userusername, p.*, f.*, eu.username AS editusername
 			FROM ".TABLE_PREFIX."posts p
@@ -422,46 +424,24 @@ if($mybb->input['action'] == "thread")
 		");
 		while($post = $db->fetch_array($query))
 		{
-			if($thread['firstpost'] == $post['pid'] && $thread['visible'] == 0)
+			if($thread['firstpost'] == $post['pid'])
 			{
-				$post['visible'] = 0;
+                $html_title = $post['subject'] . " - " . $repo_config['html_basic_title'];
+                $h1_text = $post['subject'];
+				$post_html = repo_build_postbit($post);
+
 			}
-			$posts .= repo_build_postbit($post);
-			$post = '';
+            break;
 		}
-		//ORIG$plugins->run_hooks("showthread_linear");
 	}
-
 	
-
-
-	
-
-
-	
-
-	// ORIGeval("\$showthread = \"".$templates->get("showthread")."\";");
-	
-	$repo_showthread = '<table border="0" cellspacing="0" cellpadding="0" class="tborder tfixed clear">
-		<tr>
-			<td class="thead">
-				<div class="float_right">
-					<span class="smalltext"><strong><a href="javascript:;" id="thread_modes">{$lang->thread_modes}</a>{$threadnoteslink}</strong></span>
-				</div>
-				<div>
-					<strong>--repo thread!--</strong>
-				</div>
-			</td>
-		</tr>
-<tr><td id="posts_container">
-	<div id="posts">
-		'.$posts.'
-	</div>
-</td></tr>
-	
-	</table>'  ;
-	
-	// ORIG      output_page($showthread);
+	$repo_showthread = '
+        <table border="0" cellspacing="0" cellpadding="0" class="tborder tfixed clear">
+        <tr>
+            <td id="posts_container">
+        	   <div id="posts">'.$post_html.'</div>
+            </td>
+        </tr></table>';
 	
 	$repo_head_extra='
 	<script type="text/javascript" src="http://localhost/mybb/jscripts/jquery.js?ver=1806"></script>
@@ -478,8 +458,7 @@ if($mybb->input['action'] == "thread")
 <script type="text/javascript" src="http://localhost/mybb/jscripts/thread.js?ver=1804"></script>
 	';
 	
-	//repo_html_template("test page", $showthread, $repo_head_extra);
-	repo_html_template("test page", $repo_showthread, $repo_head_extra);
+	repo_html_template($html_title, $h1_text, $repo_showthread, $repo_head_extra);
 }
 
 /**

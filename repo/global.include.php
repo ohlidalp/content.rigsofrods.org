@@ -9,7 +9,7 @@ require_once $repo_config["mybb_root"] . "/global.php";
 //require_once MYBB_ROOT."games/global.php";
 
 
-function repo_html_template($title, $body_html, $header_html)
+function repo_html_template($title, $h1_text, $body_html, $header_html)
 {
 	global $repo_config;
 
@@ -56,7 +56,7 @@ function repo_html_template($title, $body_html, $header_html)
 				<article id="docs-page">
 					<header id="docs-header">
 						<div class="wrapper docs-content">
-							<h1>Rigs of Rods Content repository</h1>
+							<h1>'.$h1_text.'</h1>
 						</div>
 					</header>
 					<div class="page wrapper docs-content">

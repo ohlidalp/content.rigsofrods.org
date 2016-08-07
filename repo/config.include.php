@@ -7,5 +7,6 @@ if(!defined("IN_MYBB"))
 }
 
 $repo_config = [
-    "mybb_root" => "../mybb"
+    "mybb_root"        => "../mybb",
+    'html_basic_title' => "RoR content repository"
 ];
